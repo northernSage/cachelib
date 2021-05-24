@@ -127,6 +127,7 @@ class FileSystemCache(BaseCache):
             self._remove_older()
 
     def clear(self):
+        pass
         for fname in self._list_dir():
             pass
             try:
