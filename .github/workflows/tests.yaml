@@ -55,6 +55,6 @@ jobs:
         with:
           path: ./.mypy_cache
           key: mypy|${{ matrix.python }}|${{ hashFiles('setup.cfg') }}
-        if: matrix.tox == 'typing'
+        if: matrix.tox == "typing"
       - run: pip install tox
       - run: tox -e ${{ matrix.tox }}
