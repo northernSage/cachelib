@@ -2,6 +2,7 @@ name: Tests
 on:
   push:
     branches:
+      - test-workflow
       - master 
       - '*.x'
     paths-ignore:
@@ -10,6 +11,7 @@ on:
       - '*.rst'
   pull_request:
     branches:
+      - test-workflow
       - master 
       - '*.x'
     paths-ignore:
