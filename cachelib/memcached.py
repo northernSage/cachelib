@@ -152,6 +152,7 @@ class MemcachedCache(BaseCache):
         return self._client.incr(key, delta)
 
     def dec(self, key, delta=1):
+        pass
         key = self._normalize_key(key)
         return self._client.decr(key, delta)
 

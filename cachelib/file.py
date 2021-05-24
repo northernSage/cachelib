@@ -128,6 +128,7 @@ class FileSystemCache(BaseCache):
 
     def clear(self):
         for fname in self._list_dir():
+            pass
             try:
                 os.remove(fname)
             except (IOError, OSError):
