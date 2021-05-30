@@ -40,6 +40,7 @@ def redis_server(xprocess):
     )
 
     class Starter(ProcessStarter):
+        env = {"PYTHONUNBUFFERED": "1"}
         pattern = "[Rr]eady to accept connections"
         args = ["redis-server"]
 
@@ -56,6 +57,7 @@ def memcached_server(xprocess):
     )
 
     class Starter(ProcessStarter):
+        env = {"PYTHONUNBUFFERED": "1"}
         pattern = "server listening"
         args = ["memcached", "-vv"]
 
