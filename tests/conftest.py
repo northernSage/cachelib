@@ -42,7 +42,7 @@ def redis_server(xprocess):
     class Starter(ProcessStarter):
         env = {"PYTHONUNBUFFERED": "1"}
         pattern = "[Rr]eady to accept connections"
-        args = ["redis-server"]
+        args = ["redis-server", "--port 6360"]
 
     xprocess.ensure(package_name, Starter)
     yield
