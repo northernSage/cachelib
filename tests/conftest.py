@@ -52,6 +52,7 @@ def redis_server(xprocess):
         yield
         xprocess.getinfo(package_name).terminate()
     else:
+        yield
         print(
             "Running under CI, process instances "
             "redis will not be started by xprocess"
