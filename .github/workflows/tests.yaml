@@ -49,6 +49,8 @@ jobs:
       - uses: actions/setup-python@v2
         with:
           python-version: ${{ matrix.python }}
+      - name: install pylibmc build dependencies
+        run: sudo apt-get install libmemcached-dev
       - name: update pip
         run: |
           pip install -U wheel
