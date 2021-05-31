@@ -62,8 +62,7 @@ jobs:
         if: matrix.tox == 'style'
       - run: pip install tox
       - run: tox -e ${{ matrix.tox }}
+      - name: set redis env values
       env:
-        # The hostname used to communicate with the Redis service container
         REDIS_HOST: localhost
-        # The default Redis port
         REDIS_PORT: 6379
