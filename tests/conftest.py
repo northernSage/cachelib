@@ -45,9 +45,9 @@ def redis_server(xprocess):
         args = ["redis-server", "--port 6360"]
 
     # probably move this to a separate func if it works
-    print("[**] CI: ", os.getenv("CI"))
+    print("GITHUB_ACTIONS: ", os.getenv("GITHUB_ACTIONS"))
 
-    if not os.getenv("CI") == "true":
+    if not os.getenv("GITHUB_ACTIONS"):
         xprocess.ensure(package_name, Starter)
         yield
         xprocess.getinfo(package_name).terminate()
