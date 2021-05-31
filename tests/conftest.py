@@ -44,9 +44,16 @@ def redis_server(xprocess):
         pattern = "[Rr]eady to accept connections"
         args = ["redis-server", "--port 6360"]
 
-    xprocess.ensure(package_name, Starter)
-    yield
-    xprocess.getinfo(package_name).terminate()
+    # probably move this to a separate func if it works
+    if not os.getenv("GITHUB_ACTIONS"):
+        xprocess.ensure(package_name, Starter)
+        yield
+        xprocess.getinfo(package_name).terminate()
+    else:
+        print(
+            "Running under CI, process instances "
+            "redis will not be started by xprocess"
+        )
 
 
 @pytest.fixture(scope="class")

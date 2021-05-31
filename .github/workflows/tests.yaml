@@ -25,12 +25,27 @@ jobs:
       matrix:
         include:
           - {name: Linux, python: '3.9', os: ubuntu-latest, tox: py39}
-          - {name: Windows, python: '3.9', os: windows-latest, tox: py39}
-          - {name: Mac, python: '3.9', os: macos-latest, tox: py39}
+            #- {name: Windows, python: '3.9', os: windows-latest, tox: py39}
+            #- {name: Mac, python: '3.9', os: macos-latest, tox: py39}
           - {name: '3.8', python: '3.8', os: ubuntu-latest, tox: py38}
           - {name: '3.7', python: '3.7', os: ubuntu-latest, tox: py37}
           - {name: '3.6', python: '3.6', os: ubuntu-latest, tox: py36}
           - {name: Style, python: '3.8', os: ubuntu-latest, tox: style}
+    # Service containers to run with `runner-job`
+    services:
+      # Label used to access the service container
+      redis:
+        # Docker Hub image
+        image: redis
+        # Set health checks to wait until redis has started
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          # Maps port 6379 on service container to the host
+          - 6379:6379
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-python@v2
@@ -54,3 +69,8 @@ jobs:
         if: matrix.tox == 'style'
       - run: pip install tox
       - run: tox -e ${{ matrix.tox }}
+      env:
+        # The hostname used to communicate with the Redis service container
+        REDIS_HOST: localhost
+        # The default Redis port
+        REDIS_PORT: 6379
