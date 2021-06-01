@@ -32,6 +32,12 @@ def pytest_sessionfinish(session, exitstatus):
     yield
 
 
+def under_CI():
+    if os.getenv("GITHUB_ACTIONS"):
+        return True
+    return False
+
+
 @pytest.fixture(scope="class")
 def redis_server(xprocess):
     package_name = "redis"
@@ -39,21 +45,18 @@ def redis_server(xprocess):
         modname=package_name, reason=f"could not find python package {package_name}"
     )
 
+    if under_CI():
+        print("Under CI, skipping local redis initialization...")
+        return
+
     class Starter(ProcessStarter):
         env = {"PYTHONUNBUFFERED": "1"}
         pattern = "[Rr]eady to accept connections"
-        args = ["redis-server", "--port 6360"]
+        args = ["redis-server"]
 
-    if not os.getenv("GITHUB_ACTIONS"):
-        xprocess.ensure(package_name, Starter)
-        yield
-        xprocess.getinfo(package_name).terminate()
-    else:
-        yield
-        print(
-            "Running under CI, process instances "
-            "redis will not be started by xprocess"
-        )
+    xprocess.ensure(package_name, Starter)
+    yield
+    xprocess.getinfo(package_name).terminate()
 
 
 @pytest.fixture(scope="class")
@@ -63,21 +66,18 @@ def memcached_server(xprocess):
         modname=package_name, reason=f"could not find python package {package_name}"
     )
 
+    if under_CI():
+        print("Under CI, skipping local memcached initialization...")
+        return
+
     class Starter(ProcessStarter):
         env = {"PYTHONUNBUFFERED": "1"}
         pattern = "server listening"
         args = ["memcached", "-vv"]
 
-    if not os.getenv("GITHUB_ACTIONS"):
-        xprocess.ensure(package_name, Starter)
-        yield
-        xprocess.getinfo(package_name).terminate()
-    else:
-        yield
-        print(
-            "Running under CI, process instances "
-            "memcached will not be started by xprocess"
-        )
+    xprocess.ensure(package_name, Starter)
+    yield
+    xprocess.getinfo(package_name).terminate()
 
 
 class TestData:
