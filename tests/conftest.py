@@ -6,6 +6,12 @@ import pytest
 from xprocess import ProcessStarter
 
 
+def under_CI():
+    if os.getenv("GITHUB_ACTIONS"):
+        return True
+    return False
+
+
 def under_uwsgi():
     try:
         import uwsgi  # noqa: F401
@@ -32,12 +38,6 @@ def pytest_sessionfinish(session, exitstatus):
     yield
 
 
-def under_CI():
-    if os.getenv("GITHUB_ACTIONS"):
-        return True
-    return False
-
-
 @pytest.fixture(scope="class")
 def redis_server(xprocess):
     package_name = "redis"
@@ -45,18 +45,18 @@ def redis_server(xprocess):
         modname=package_name, reason=f"could not find python package {package_name}"
     )
 
-    if under_CI():
-        print("Under CI, skipping local redis initialization...")
-        return
-
     class Starter(ProcessStarter):
         env = {"PYTHONUNBUFFERED": "1"}
         pattern = "[Rr]eady to accept connections"
         args = ["redis-server"]
 
-    xprocess.ensure(package_name, Starter)
-    yield
-    xprocess.getinfo(package_name).terminate()
+    if under_CI():
+        print("Under CI, skipping local redis initialization...")
+        yield
+    else:
+        xprocess.ensure(package_name, Starter)
+        yield
+        xprocess.getinfo(package_name).terminate()
 
 
 @pytest.fixture(scope="class")
@@ -66,18 +66,18 @@ def memcached_server(xprocess):
         modname=package_name, reason=f"could not find python package {package_name}"
     )
 
-    if under_CI():
-        print("Under CI, skipping local memcached initialization...")
-        return
-
     class Starter(ProcessStarter):
         env = {"PYTHONUNBUFFERED": "1"}
         pattern = "server listening"
         args = ["memcached", "-vv"]
 
-    xprocess.ensure(package_name, Starter)
-    yield
-    xprocess.getinfo(package_name).terminate()
+    if under_CI():
+        print("Under CI, skipping local redis initialization...")
+        yield
+    else:
+        xprocess.ensure(package_name, Starter)
+        yield
+        xprocess.getinfo(package_name).terminate()
 
 
 class TestData:
