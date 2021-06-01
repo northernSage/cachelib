@@ -6,12 +6,6 @@ import pytest
 from xprocess import ProcessStarter
 
 
-def under_CI():
-    if os.getenv("GITHUB_ACTIONS"):
-        return True
-    return False
-
-
 def under_uwsgi():
     try:
         import uwsgi  # noqa: F401
@@ -46,17 +40,12 @@ def redis_server(xprocess):
     )
 
     class Starter(ProcessStarter):
-        env = {"PYTHONUNBUFFERED": "1"}
         pattern = "[Rr]eady to accept connections"
-        args = ["redis-server"]
+        args = ["redis-server", "--port 6360"]
 
-    if under_CI():
-        print("Under CI, skipping local redis initialization...")
-        yield
-    else:
-        xprocess.ensure(package_name, Starter)
-        yield
-        xprocess.getinfo(package_name).terminate()
+    xprocess.ensure(package_name, Starter)
+    yield
+    xprocess.getinfo(package_name).terminate()
 
 
 @pytest.fixture(scope="class")
@@ -67,17 +56,12 @@ def memcached_server(xprocess):
     )
 
     class Starter(ProcessStarter):
-        env = {"PYTHONUNBUFFERED": "1"}
         pattern = "server listening"
         args = ["memcached", "-vv"]
 
-    if under_CI():
-        print("Under CI, skipping local redis initialization...")
-        yield
-    else:
-        xprocess.ensure(package_name, Starter)
-        yield
-        xprocess.getinfo(package_name).terminate()
+    xprocess.ensure(package_name, Starter)
+    yield
+    xprocess.getinfo(package_name).terminate()
 
 
 class TestData:

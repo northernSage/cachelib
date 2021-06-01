@@ -17,13 +17,6 @@ on:
       - '*.md'
       - '*.rst'
 jobs:
-  dockermacos:
-    runs-on: macos-latest
-    steps:
-      - name: install docker on MacOS runner
-        run: |
-          brew install docker docker-machine
-          sudo docker –version
   tests:
     name: ${{ matrix.name }}
     runs-on: ${{ matrix.os }}
@@ -37,31 +30,17 @@ jobs:
           - {name: '3.7', python: '3.7', os: ubuntu-latest, tox: py37}
           - {name: '3.6', python: '3.6', os: ubuntu-latest, tox: py36}
           - {name: Style, python: '3.8', os: ubuntu-latest, tox: style}
-    services:
-      redis:
-        image: redis
-        options: >-
-          --health-cmd "redis-cli ping"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-        ports:
-          - 6379:6379
-      memcached:
-        image: memcached:latest
-        ports:
-          - 11211:11211
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-python@v2
         with:
           python-version: ${{ matrix.python }}
-      - name: install pylibmc build dependencies macOS
-        run: brew install libmemcached
-        if: matrix.os == 'macOS-10.14'
-      - name: install pylibmc build dependencies linux
+      - name: install external dependencies macos
+        if: matrix.os == 'macos-latest'
+        run: brew install memcached redis-server
+      - name: install external dependencies linux
         if: matrix.os == 'ubuntu-latest'
-        run: sudo apt-get install libmemcached-dev
+        run: sudo apt-get install libmemcached-dev memcached redis-server
       - name: update pip
         run: |
           pip install -U wheel
