@@ -37,7 +37,7 @@ jobs:
           python-version: ${{ matrix.python }}
       - name: install external dependencies macos
         if: matrix.os == 'macos-latest'
-        run: brew install memcached redis
+        run: brew install libmemcached memcached redis
       - name: install external dependencies linux
         if: matrix.os == 'ubuntu-latest'
         run: sudo apt-get install libmemcached-dev memcached redis-server
