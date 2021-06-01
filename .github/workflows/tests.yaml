@@ -17,6 +17,13 @@ on:
       - '*.md'
       - '*.rst'
 jobs:
+  dockermacos:
+    runs-on: macos-latest
+    steps:
+      - name: install docker on MacOS runner
+        run: |
+          brew install docker docker-machine
+          sudo docker –version
   tests:
     name: ${{ matrix.name }}
     runs-on: ${{ matrix.os }}
