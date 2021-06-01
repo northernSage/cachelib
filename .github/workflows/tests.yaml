@@ -39,7 +39,7 @@ jobs:
           --health-retries 5
         ports:
           - 6379:6379
-    memcached:
+      memcached:
         image: memcached:latest
         options: >-
           --health-cmd "memcached-tool 127.0.0.1:11211"
