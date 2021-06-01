@@ -54,7 +54,7 @@ jobs:
         run: sudo apt-get install libmemcached-dev
       - name: install pylibmc build dependencies macOS
         if: matrix.os == 'macOS-latest'
-        run: brew install libmemcached
+        run: brew install libmemcached docker-machine docker
       - name: update pip
         run: |
           pip install -U wheel
