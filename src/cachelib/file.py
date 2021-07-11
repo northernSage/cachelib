@@ -1,8 +1,8 @@
-import errno
 import os
 import pickle
 import tempfile
 from hashlib import md5
+from pathlib import Path
 from time import time
 
 from cachelib.base import BaseCache
@@ -35,13 +35,7 @@ class FileSystemCache(BaseCache):
         self._path = cache_dir
         self._threshold = threshold
         self._mode = mode
-
-        try:
-            os.makedirs(self._path)
-        except OSError as ex:
-            if ex.errno != errno.EEXIST:
-                raise
-
+        Path(self._path).mkdir(exist_ok=True)
         # If there are many files and a zero threshold,
         # the list_dir can slow initialisation massively
         if self._threshold != 0:
@@ -99,7 +93,7 @@ class FileSystemCache(BaseCache):
             except OSError:
                 pass
         fname_sorted = (
-            fname for _, fname in sorted(exp_fname_tuples, key=lambda item: item[1][0])
+            fname for _, fname in sorted(exp_fname_tuples, key=lambda item: item[0])
         )
         for fname in fname_sorted:
             try:
@@ -128,14 +122,14 @@ class FileSystemCache(BaseCache):
         self._update_count(value=0)
         return True
 
-    def _get_filename(self, key):
+    def _get_path(self, key):
         if isinstance(key, str):
             key = key.encode("utf-8")  # XXX unicode review
         hash = md5(key).hexdigest()
-        return os.path.join(self._path, hash)
+        return Path(self._path, hash)
 
     def get(self, key):
-        filename = self._get_filename(key)
+        filename = self._get_path(key)
         try:
             with open(filename, "rb") as f:
                 pickle_time = pickle.load(f)
@@ -149,8 +143,8 @@ class FileSystemCache(BaseCache):
             return None
 
     def add(self, key, value, timeout=None):
-        filename = self._get_filename(key)
-        if not os.path.exists(filename):
+        filename = self._get_path(key)
+        if not Path(filename).exists():
             return self.set(key, value, timeout)
         return False
 
@@ -158,14 +152,13 @@ class FileSystemCache(BaseCache):
         # Management elements have no timeout
         if mgmt_element:
             timeout = 0
-
         # Don't prune on management element update, to avoid loop
         else:
             self._prune()
 
         timeout = self._normalize_timeout(timeout)
-        filename = self._get_filename(key)
-        overwrite = os.path.isfile(filename)
+        filename = self._get_path(key)
+        overwrite = Path(filename).is_file()
         try:
             fd, tmp = tempfile.mkstemp(
                 suffix=self._fs_transaction_suffix, dir=self._path
@@ -185,7 +178,7 @@ class FileSystemCache(BaseCache):
 
     def delete(self, key, mgmt_element=False):
         try:
-            os.remove(self._get_filename(key))
+            os.remove(self._get_path(key))
         except OSError:
             return False
         else:
@@ -195,7 +188,7 @@ class FileSystemCache(BaseCache):
             return True
 
     def has(self, key):
-        filename = self._get_filename(key)
+        filename = self._get_path(key)
         try:
             with open(filename, "rb") as f:
                 pickle_time = pickle.load(f)
