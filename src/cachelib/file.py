@@ -45,7 +45,7 @@ class FileSystemCache(BaseCache):
         # If there are many files and a zero threshold,
         # the list_dir can slow initialisation massively
         if self._threshold != 0:
-            self._update_count(value=len(self._list_dir()))
+            self._update_count(value=len(list(self._list_dir())))
 
     @property
     def _file_count(self):
@@ -69,22 +69,18 @@ class FileSystemCache(BaseCache):
 
     def _list_dir(self):
         """return a list of (fully qualified) cache filenames"""
-        mgmt_files = [
-            self._get_filename(name).split(os.sep)[-1]
-            for name in (self._fs_count_file,)
-        ]
-        return [
-            os.path.join(self._path, fn)
+        mgmt = (self._get_path(key).name for key in (self._fs_count_file,))
+        return (
+            Path(self._path, fn)
             for fn in os.listdir(self._path)
-            if not fn.endswith(self._fs_transaction_suffix) and fn not in mgmt_files
-        ]
+            if not fn.endswith(self._fs_transaction_suffix) and fn not in mgmt
+        )
 
     def _over_threshold(self):
         return self._threshold != 0 and self._file_count > self._threshold
 
     def _remove_expired(self, now):
-        entries = self._list_dir()
-        for fname in entries:
+        for fname in self._list_dir():
             try:
                 with open(fname, "rb") as f:
                     expires = pickle.load(f)
@@ -95,9 +91,8 @@ class FileSystemCache(BaseCache):
                 pass
 
     def _remove_older(self):
-        entries = self._list_dir()
         exp_fname_tuples = []
-        for fname in entries:
+        for fname in self._list_dir():
             try:
                 with open(fname, "rb") as f:
                     exp_fname_tuples.append((pickle.load(f), fname))
@@ -124,11 +119,11 @@ class FileSystemCache(BaseCache):
             self._remove_older()
 
     def clear(self):
-        for fname in self._list_dir():
+        for i, fname in enumerate(self._list_dir()):
             try:
                 os.remove(fname)
             except OSError:
-                self._update_count(value=len(self._list_dir()))
+                self._update_count(delta=-i)
                 return False
         self._update_count(value=0)
         return True
