@@ -31,7 +31,7 @@ class FileSystemCache(BaseCache):
     _fs_count_file = "__wz_cache_count"
 
     def __init__(self, cache_dir, threshold=500, default_timeout=300, mode=0o600):
-        BaseCache.__init__(self, default_timeout)
+        super().__init__(default_timeout)
         self._path = cache_dir
         self._threshold = threshold
         self._mode = mode
@@ -55,7 +55,6 @@ class FileSystemCache(BaseCache):
         # If we have no threshold, don't count files
         if self._threshold == 0:
             return
-
         if delta:
             new_count = self._file_count + delta
         else:
@@ -63,7 +62,7 @@ class FileSystemCache(BaseCache):
         self.set(self._fs_count_file, new_count, mgmt_element=True)
 
     def _normalize_timeout(self, timeout):
-        timeout = BaseCache._normalize_timeout(self, timeout)
+        timeout = super()._normalize_timeout(timeout)
         if timeout != 0:
             timeout = time() + timeout
         return int(timeout)
@@ -179,7 +178,6 @@ class FileSystemCache(BaseCache):
             with os.fdopen(fd, "wb") as f:
                 pickle.dump(timeout, f, 1)
                 pickle.dump(value, f, pickle.HIGHEST_PROTOCOL)
-
             os.replace(tmp, filename)
             os.chmod(filename, self._mode)
         except OSError:
